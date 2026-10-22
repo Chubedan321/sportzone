@@ -1,0 +1,217 @@
+<!doctype html>
+<html lang="vi">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Tất Cả Sản Phẩm - SportZone</title>
+    <link rel="stylesheet" href="css/style.css" />
+  </head>
+  <body>
+    <!-- Header -->
+    <header class="header">
+      <div class="container nav-bar">
+        <a href="index.html" class="logo" style="text-decoration: none; color: #fff"
+          >Sport<span>Zone</span></a
+        >
+        <nav class="nav-links">
+          <a href="index.html">Trang Chủ</a>
+          <a href="javascript:void(0)" onclick="quickFilterStatus('all')" style="color: #e63946"
+            >Tất Cả Sản Phẩm</a
+          >
+          <a href="javascript:void(0)" onclick="quickFilterStatus('new')">Hàng Mới</a>
+          <a href="javascript:void(0)" onclick="quickFilterStatus('hot')">Bán Chạy</a>
+          <a href="javascript:void(0)" onclick="quickFilterStatus('sale')">Flash Sale</a>
+          <a href="index.html#contact-section">Liên Hệ</a>
+        </nav>
+        <div class="header-right">
+          <div id="user-display"></div>
+          <a href="cart.html" class="cart-btn">
+            <span class="cart-icon">🛒</span>
+            <span>Giỏ Hàng</span>
+            <span class="cart-badge" id="cart-count">0</span>
+          </a>
+        </div>
+      </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="container" style="padding-top: 30px">
+      <div class="breadcrumb">
+        <a href="index.html">Trang Chủ</a> / <strong>Danh Mục Sản Phẩm</strong>
+      </div>
+
+      <div class="category-header">
+        <h1 class="section-title">Tất Cả Sản Phẩm</h1>
+      </div>
+
+      <!-- Toolbar Lọc & Tìm Kiếm Chuyên Nghiệp -->
+      <section class="filter-toolbar">
+        <div class="search-box-wrapper">
+          <span class="search-icon">🔍</span>
+          <input
+            type="text"
+            id="search-input"
+            placeholder="Tìm tên sản phẩm (VD: Giày, Hoodie...)"
+            oninput="filterAllProducts()"
+          />
+        </div>
+
+        <div class="filter-controls-group">
+          <!-- 1. Danh mục -->
+          <div class="select-wrapper">
+            <select id="category-filter" onchange="filterAllProducts()">
+              <option value="all">Tất cả danh mục</option>
+              <option value="shoes">Giày Thể Thao</option>
+              <option value="clothing">Quần Áo</option>
+              <option value="accessories">Phụ Kiện & Đồng Hồ</option>
+            </select>
+          </div>
+
+          <!-- 2. Trạng thái -->
+          <div class="select-wrapper">
+            <select id="status-filter" onchange="filterAllProducts()">
+              <option value="all">Tất cả trạng thái</option>
+              <option value="new">Hàng Mới (New)</option>
+              <option value="hot">Bán Chạy (Hot)</option>
+              <option value="sale">Khuyến Mãi (Sale)</option>
+            </select>
+          </div>
+
+          <!-- 3. Khoảng giá -->
+          <div class="select-wrapper">
+            <select id="price-filter" onchange="filterAllProducts()">
+              <option value="all">Khoảng giá</option>
+              <option value="under500">Dưới 500.000đ</option>
+              <option value="500to1500">500.000đ - 1.500.000đ</option>
+              <option value="over1500">Trên 1.500.000đ</option>
+            </select>
+          </div>
+
+          <!-- 4. Sắp xếp -->
+          <div class="select-wrapper">
+            <select id="sort-filter" onchange="filterAllProducts()">
+              <option value="default">Sắp xếp theo giá</option>
+              <option value="price-asc">Giá: Thấp đến Cao</option>
+              <option value="price-desc">Giá: Cao đến Thấp</option>
+            </select>
+          </div>
+
+          <!-- 5. Nút Đặt lại nhanh -->
+          <button
+            type="button"
+            class="btn-reset-filter"
+            onclick="resetAllFilters()"
+            title="Đặt lại bộ lọc"
+          >
+            ↺ Đặt lại
+          </button>
+        </div>
+      </section>
+
+      <div class="product-grid" id="all-products-grid" style="margin-bottom: 60px"></div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="site-footer" id="footer-app"></footer>
+
+    <script src="js/app.js"></script>
+    <script>
+      const urlParams = new URLSearchParams(window.location.search);
+      const statusFromUrl = urlParams.get("status");
+      const categoryFromUrl = urlParams.get("category");
+
+      if (statusFromUrl) {
+        document.getElementById("status-filter").value = statusFromUrl;
+      }
+      if (categoryFromUrl) {
+        document.getElementById("category-filter").value = categoryFromUrl;
+      }
+
+      function quickFilterStatus(status) {
+        document.getElementById("status-filter").value = status;
+        const newUrl = status === "all" ? "products.html" : `products.html?status=${status}`;
+        window.history.pushState({ path: newUrl }, "", newUrl);
+        filterAllProducts();
+      }
+
+      function filterAllProducts() {
+        const keyword = document.getElementById("search-input").value.toLowerCase().trim();
+        const category = document.getElementById("category-filter").value;
+        const status = document.getElementById("status-filter").value;
+        const priceRange = document.getElementById("price-filter").value;
+        const sort = document.getElementById("sort-filter").value;
+
+        let result = [];
+        for (let i = 0; i < PRODUCTS_DATA.length; i++) {
+          result.push(PRODUCTS_DATA[i]);
+        }
+
+        if (category !== "all") {
+          result = result.filter(function (item) {
+            return item.category === category;
+          });
+        }
+
+        if (status !== "all") {
+          result = result.filter(function (item) {
+            return item.status === status;
+          });
+        }
+
+        if (keyword !== "") {
+          result = result.filter(function (item) {
+            return item.name.toLowerCase().includes(keyword);
+          });
+        }
+
+        if (priceRange === "under500") {
+          result = result.filter(function (item) {
+            return item.price < 500000;
+          });
+        } else if (priceRange === "500to1500") {
+          result = result.filter(function (item) {
+            return item.price >= 500000 && item.price <= 1500000;
+          });
+        } else if (priceRange === "over1500") {
+          result = result.filter(function (item) {
+            return item.price > 1500000;
+          });
+        }
+
+        if (sort === "price-asc") {
+          result.sort(function (a, b) {
+            return a.price - b.price;
+          });
+        } else if (sort === "price-desc") {
+          result.sort(function (a, b) {
+            return b.price - a.price;
+          });
+        }
+
+        const grid = document.getElementById("all-products-grid");
+        if (result.length === 0) {
+          grid.innerHTML =
+            "<p style='grid-column: 1/-1; text-align: center; padding: 40px;'>Không tìm thấy sản phẩm nào phù hợp!</p>";
+        } else {
+          let html = "";
+          for (let i = 0; i < result.length; i++) {
+            html += createProductCardHTML(result[i]);
+          }
+          grid.innerHTML = html;
+        }
+      }
+
+      filterAllProducts();
+
+      function resetAllFilters() {
+        document.getElementById("search-input").value = "";
+        document.getElementById("category-filter").value = "all";
+        document.getElementById("status-filter").value = "all";
+        document.getElementById("price-filter").value = "all";
+        document.getElementById("sort-filter").value = "default";
+        window.history.pushState({}, "", "products.html");
+        filterAllProducts();
+      }
+    </script>
+  </body>
+</html>

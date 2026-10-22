@@ -1,0 +1,157 @@
+<!doctype html>
+<html lang="vi">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Giỏ Hàng - SportZone</title>
+    <link rel="stylesheet" href="css/style.css" />
+  </head>
+  <body>
+    <!-- Header -->
+    <header class="header">
+      <div class="container nav-bar">
+        <a href="index.html" class="logo" style="text-decoration: none; color: #fff"
+          >Sport<span>Zone</span></a
+        >
+        <nav class="nav-links">
+          <a href="index.html">Trang Chủ</a>
+          <a href="products.html">Tất Cả Sản Phẩm</a>
+          <a href="products.html?status=new">Hàng Mới</a>
+          <a href="products.html?status=hot">Bán Chạy</a>
+          <a href="products.html?status=sale">Flash Sale</a>
+          <a href="index.html#contact-section">Liên Hệ</a>
+        </nav>
+        <div class="header-right">
+          <div id="user-display"></div>
+          <a href="cart.html" class="cart-btn">
+            <span class="cart-icon">🛒</span>
+            <span>Giỏ Hàng</span>
+            <span class="cart-badge" id="cart-count">0</span>
+          </a>
+        </div>
+      </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="container" style="padding: 40px 0 60px">
+      <div class="breadcrumb">
+        <a href="index.html">Trang Chủ</a> / <strong>Giỏ Hàng Của Bạn</strong>
+      </div>
+
+      <h1 class="section-title" style="margin-bottom: 25px">Chi Tiết Giỏ Hàng</h1>
+
+      <div class="cart-page-wrapper">
+        <div class="cart-table-container">
+          <table class="cart-table">
+            <thead>
+              <tr>
+                <th>Hình ảnh</th>
+                <th>Tên sản phẩm</th>
+                <th>Đơn giá</th>
+                <th>Số lượng</th>
+                <th>Thành tiền</th>
+                <th>Xóa</th>
+              </tr>
+            </thead>
+            <tbody id="cart-page-body"></tbody>
+          </table>
+        </div>
+
+        <div class="cart-summary-box">
+          <h3>Tổng Đơn Hàng</h3>
+          <div class="summary-line">
+            <span>Tạm tính:</span>
+            <span id="summary-subtotal">0đ</span>
+          </div>
+          <div class="summary-line">
+            <span>Phí vận chuyển:</span>
+            <span>Miễn phí</span>
+          </div>
+          <div class="summary-line total">
+            <strong>Tổng cộng:</strong>
+            <strong id="summary-total" style="color: #e63946">0đ</strong>
+          </div>
+          <a
+            href="checkout.html"
+            class="btn-submit"
+            style="text-align: center; display: block; text-decoration: none; margin-top: 15px"
+          >
+            Tiến Hành Thanh Toán
+          </a>
+          <a
+            href="products.html"
+            style="
+              display: block;
+              text-align: center;
+              margin-top: 12px;
+              color: #666;
+              font-size: 13px;
+              text-decoration: none;
+            "
+          >
+            ← Tiếp tục mua sắm
+          </a>
+        </div>
+      </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="site-footer" id="footer-app"></footer>
+
+    <script src="js/app.js"></script>
+    <script>
+      function renderCartPage() {
+        const tbody = document.getElementById("cart-page-body");
+        const subtotalEl = document.getElementById("summary-subtotal");
+        const totalEl = document.getElementById("summary-total");
+        if (!tbody) return;
+
+        if (cart.length === 0) {
+          tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; padding: 40px;">Giỏ hàng trống. <a href="products.html" style="color:#e63946; font-weight:bold;">Mua ngay</a></td></tr>`;
+          if (subtotalEl) subtotalEl.textContent = "0đ";
+          if (totalEl) totalEl.textContent = "0đ";
+          return;
+        }
+
+        let total = 0;
+        let html = "";
+        for (let i = 0; i < cart.length; i++) {
+          const item = cart[i];
+          const subtotal = item.price * item.quantity;
+          total += subtotal;
+          html += `
+            <tr>
+              <td><img src="${item.image}" alt="${item.name}" class="cart-img-thumb" /></td>
+              <td><strong>${item.name}</strong></td>
+              <td>${item.price.toLocaleString("vi-VN")}đ</td>
+              <td>
+                <div class="cart-qty-ctrl">
+                  <button type="button" onclick="changeQuantityCartPage(${item.id}, -1)">-</button>
+                  <span>${item.quantity}</span>
+                  <button type="button" onclick="changeQuantityCartPage(${item.id}, 1)">+</button>
+                </div>
+              </td>
+              <td style="color:#e63946; font-weight:bold;">${subtotal.toLocaleString("vi-VN")}đ</td>
+              <td><button type="button" class="cart-btn-del" onclick="removeCartPageItem(${item.id})">✕</button></td>
+            </tr>
+          `;
+        }
+        tbody.innerHTML = html;
+        if (subtotalEl) subtotalEl.textContent = total.toLocaleString("vi-VN") + "đ";
+        if (totalEl) totalEl.textContent = total.toLocaleString("vi-VN") + "đ";
+      }
+
+      function changeQuantityCartPage(id, delta) {
+        changeQuantity(id, delta);
+        renderCartPage();
+      }
+
+      function removeCartPageItem(id) {
+        removeFromCart(id);
+        renderCartPage();
+      }
+
+      renderCartPage();
+    </script>
+  </body>
+</html>

@@ -1,0 +1,209 @@
+<!doctype html>
+<html lang="vi">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Chi Tiết Sản Phẩm - SportZone</title>
+    <link rel="stylesheet" href="css/style.css" />
+  </head>
+  <body>
+    <!-- Header -->
+    <header class="header">
+      <div class="container nav-bar">
+        <a href="index.html" class="logo" style="text-decoration: none; color: #fff"
+          >Sport<span>Zone</span></a
+        >
+        <nav class="nav-links">
+          <a href="index.html">Trang Chủ</a>
+          <a href="products.html">Tất Cả Sản Phẩm</a>
+          <a href="products.html?status=new">Hàng Mới</a>
+          <a href="products.html?status=hot">Bán Chạy</a>
+          <a href="products.html?status=sale">Flash Sale</a>
+          <a href="index.html#contact-section">Liên Hệ</a>
+        </nav>
+        <div class="header-right">
+          <div id="user-display"></div>
+          <a href="cart.html" class="cart-btn">
+            <span class="cart-icon">🛒</span>
+            <span>Giỏ Hàng</span>
+            <span class="cart-badge" id="cart-count">0</span>
+          </a>
+        </div>
+      </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="container" style="padding-top: 25px">
+      <div class="breadcrumb">
+        <a href="index.html">Trang Chủ</a> / <span id="detail-category-crumb">Sản phẩm</span> /
+        <strong id="detail-name-crumb">Chi tiết</strong>
+      </div>
+
+      <div class="detail-container" id="detail-product-wrapper"></div>
+
+      <section class="related-section">
+        <h2 class="section-title">Gợi Ý Sản Phẩm Tương Tự</h2>
+        <div class="product-grid" id="related-products-grid"></div>
+      </section>
+    </main>
+
+    <!-- Footer -->
+    <footer class="site-footer" id="footer-app"></footer>
+
+    <!-- Script Xử Lý -->
+    <script src="js/app.js"></script>
+    <script>
+      const urlParams = new URLSearchParams(window.location.search);
+      const productId = parseInt(urlParams.get("id"));
+
+      const product = PRODUCTS_DATA.find((p) => p.id === productId);
+      const detailContainer = document.getElementById("detail-product-wrapper");
+
+      if (!product) {
+        detailContainer.innerHTML = `
+        <div style="text-align:center; padding: 60px 0; width: 100%;">
+          <h2>Không tìm thấy sản phẩm!</h2>
+          <p style="margin: 15px 0;"><a href="index.html" style="color: #e63946; font-weight: bold;">← Quay về trang chủ</a></p>
+        </div>
+      `;
+      } else {
+        document.title = `${product.name} - SportZone`;
+        document.getElementById("detail-name-crumb").textContent = product.name;
+        document.getElementById("detail-category-crumb").textContent =
+          product.category === "shoes"
+            ? "Giày Thể Thao"
+            : product.category === "clothing"
+              ? "Quần Áo"
+              : "Phụ Kiện & Đồng Hồ";
+
+        detailContainer.innerHTML = `
+        <div class="detail-gallery">
+          <img src="${product.image}" alt="${product.name}" class="detail-main-img" />
+        </div>
+        <div class="detail-info">
+          <span class="detail-badge">${product.category.toUpperCase()}</span>
+          <h1 class="detail-title">${product.name}</h1>
+          <div class="detail-price-box">
+            <span class="detail-price-current">${product.price.toLocaleString("vi-VN")}đ</span>
+            <span class="detail-price-old">${product.originalPrice.toLocaleString("vi-VN")}đ</span>
+          </div>
+          <p class="detail-desc">${product.desc}</p>
+          <div class="detail-spec">
+            <p><strong>Chất liệu:</strong> ${product.material}</p>
+          </div>
+          <div class="detail-sizes">
+            <label><strong>Kích cỡ / Quy cách:</strong></label>
+            <div class="size-options">
+              ${product.sizes
+                .map(
+                  (s, idx) => `
+                <button type="button" class="btn-size ${idx === 0 ? "active" : ""}" onclick="selectSize(this)">${s}</button>
+              `,
+                )
+                .join("")}
+            </div>
+          </div>
+          <div class="detail-actions">
+            <div class="quantity-input-box">
+              <button type="button" onclick="adjustDetailQty(-1)">-</button>
+              <input type="number" id="detail-quantity" value="1" min="1" readonly />
+              <button type="button" onclick="adjustDetailQty(1)">+</button>
+            </div>
+            <button type="button" class="btn-detail-add" onclick="addCustomDetailToCart(${product.id})">
+              🛒 Thêm Vào Giỏ Hàng
+            </button>
+            <button type="button" class="btn-buy-now" onclick="buyNowAction(${product.id})">
+              Mua Ngay
+            </button>
+          </div>
+        </div>
+      `;
+
+        const related = PRODUCTS_DATA.filter(
+          (p) => p.category === product.category && p.id !== product.id,
+        ).slice(0, 3);
+        const relatedGrid = document.getElementById("related-products-grid");
+        relatedGrid.innerHTML = related.map((p) => createProductCardHTML(p)).join("");
+      }
+
+      function selectSize(element) {
+        document.querySelectorAll(".btn-size").forEach((btn) => btn.classList.remove("active"));
+        element.classList.add("active");
+      }
+
+      function adjustDetailQty(delta) {
+        const qtyInput = document.getElementById("detail-quantity");
+        let current = parseInt(qtyInput.value) || 1;
+        current += delta;
+        if (current < 1) current = 1;
+        qtyInput.value = current;
+      }
+
+      function addCustomDetailToCart(id) {
+        const currentUser = getCurrentUser();
+        if (!currentUser) {
+          alert("Vui lòng đăng nhập tài khoản để thêm sản phẩm vào giỏ hàng!");
+          localStorage.setItem("PENDING_PRODUCT_ID", id);
+          window.location.href = "login.html";
+          return;
+        }
+
+        const qtyInput = document.getElementById("detail-quantity");
+        const qty = parseInt(qtyInput ? qtyInput.value : 1) || 1;
+        const productItem = PRODUCTS_DATA.find((item) => item.id === id);
+        if (!productItem) return;
+
+        const existingItem = cart.find((item) => item.id === id);
+        if (existingItem) {
+          existingItem.quantity += qty;
+        } else {
+          cart.push({
+            id: productItem.id,
+            name: productItem.name,
+            price: productItem.price,
+            image: productItem.image,
+            quantity: qty,
+          });
+        }
+        saveCartToStorage();
+        if (typeof updateCartBadge === "function") {
+          updateCartBadge();
+        }
+        alert(`Đã thêm ${qty} sản phẩm "${productItem.name}" vào giỏ hàng!`);
+      }
+
+      // XỬ LÝ NÚT MUA NGAY
+      function buyNowAction(id) {
+        const qtyInput = document.getElementById("detail-quantity");
+        const qty = parseInt(qtyInput ? qtyInput.value : 1) || 1;
+        const productItem = PRODUCTS_DATA.find((item) => item.id === id);
+        if (!productItem) return;
+
+        // Thêm vào giỏ
+        const existingItem = cart.find((item) => item.id === id);
+        if (existingItem) {
+          existingItem.quantity += qty;
+        } else {
+          cart.push({
+            id: productItem.id,
+            name: productItem.name,
+            price: productItem.price,
+            image: productItem.image,
+            quantity: qty,
+          });
+        }
+        saveCartToStorage();
+
+        const currentUser = getCurrentUser();
+        if (!currentUser) {
+          alert("Vui lòng đăng nhập để tiến hành đặt hàng!");
+          localStorage.setItem("REDIRECT_TARGET", "checkout.html");
+          window.location.href = "login.html";
+          return;
+        }
+
+        window.location.href = "checkout.html";
+      }
+    </script>
+  </body>
+</html>
